@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentProfile } from "@/lib/supabase/profile";
 import { createClient } from "@/lib/supabase/server";
@@ -38,6 +39,18 @@ export default async function StudentPage() {
             <button className="text-sm text-neutral-500 hover:text-neutral-800">Sign out</button>
           </form>
         </div>
+
+        <nav className="flex gap-4 mb-8">
+          <Link href="/me" className="text-sm font-medium text-emerald-800 hover:underline">
+            My attendance
+          </Link>
+          <Link
+            href="/schedule"
+            className="text-sm font-medium text-neutral-500 hover:text-emerald-800 hover:underline"
+          >
+            Schedule
+          </Link>
+        </nav>
 
         <h2 className="text-sm font-medium text-neutral-500 mb-3">My attendance</h2>
 

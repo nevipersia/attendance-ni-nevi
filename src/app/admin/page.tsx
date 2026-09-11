@@ -97,6 +97,12 @@ export default async function AdminPage() {
           >
             Students
           </Link>
+          <Link
+            href="/schedule"
+            className="text-sm font-medium text-neutral-500 hover:text-emerald-800 hover:underline"
+          >
+            Schedule
+          </Link>
         </nav>
 
         <h2 className="text-sm font-medium text-neutral-500 mb-3">Today · {today}</h2>
