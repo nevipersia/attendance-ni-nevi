@@ -10,9 +10,14 @@ export type Profile = {
 /** The signed-in user's profile, or null if not logged in. */
 export async function getCurrentProfile(): Promise<Profile | null> {
   const supabase = await createClient();
+  // getSession() reads the JWT from cookies locally instead of making
+  // another network call to Supabase's auth server -- safe here because
+  // middleware already called getUser() (which does verify over the
+  // network and refreshes the token) earlier in this same request.
   const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    data: { session },
+  } = await supabase.auth.getSession();
+  const user = session?.user;
 
   if (!user) return null;
 

@@ -31,7 +31,15 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (user) {
+  // The active check below is a real DB round-trip on top of Supabase's
+  // own auth call, and this middleware runs on every request. Throttle
+  // it with a short-lived cookie so most navigations skip it entirely --
+  // a deactivated user is still caught within a few minutes, just not
+  // on literally every click.
+  const ACTIVE_CHECK_COOKIE = "av_checked";
+  const ACTIVE_CHECK_TTL_SECONDS = 180;
+
+  if (user && !request.cookies.get(ACTIVE_CHECK_COOKIE)) {
     const { data: profile } = await supabase
       .from("profiles")
       .select("active")
@@ -47,6 +55,12 @@ export async function updateSession(request: NextRequest) {
       response.cookies.getAll().forEach((c) => redirectResponse.cookies.set(c));
       return redirectResponse;
     }
+
+    response.cookies.set(ACTIVE_CHECK_COOKIE, "1", {
+      maxAge: ACTIVE_CHECK_TTL_SECONDS,
+      httpOnly: true,
+      sameSite: "lax",
+    });
   }
 
   return response;
