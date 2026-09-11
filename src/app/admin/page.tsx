@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { signOut } from "@/lib/actions/auth";
 import { todayInSchoolTz } from "@/lib/today";
 import { getSessionStatus, type SessionStatus } from "@/lib/session-status";
+import CancelSessionButton from "./CancelSessionButton";
 
 const STATUS_STYLES: Record<SessionStatus, string> = {
   open: "bg-emerald-50 text-emerald-800",
@@ -143,6 +144,7 @@ export default async function AdminPage() {
                 >
                   Edit time
                 </Link>
+                <CancelSessionButton sessionId={session.id} subjectName={subject.name} />
               </div>
             </div>
           ))}

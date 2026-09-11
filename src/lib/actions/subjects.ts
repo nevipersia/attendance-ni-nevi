@@ -76,6 +76,36 @@ export async function addScheduleSlot(subjectId: string, formData: FormData) {
   revalidatePath(`/admin/subjects/${subjectId}`);
 }
 
+export async function updateScheduleSlot(
+  subjectId: string,
+  slotId: string,
+  formData: FormData,
+) {
+  await requireAdmin();
+  const dayOfWeek = Number(formData.get("day_of_week"));
+  const startTime = String(formData.get("start_time") ?? "");
+  const endTime = String(formData.get("end_time") ?? "");
+
+  if (
+    Number.isNaN(dayOfWeek) ||
+    dayOfWeek < 0 ||
+    dayOfWeek > 6 ||
+    !startTime ||
+    !endTime ||
+    startTime >= endTime
+  ) {
+    return;
+  }
+
+  const supabase = await createClient();
+  await supabase
+    .from("subject_schedule")
+    .update({ day_of_week: dayOfWeek, start_time: startTime, end_time: endTime })
+    .eq("id", slotId);
+
+  revalidatePath(`/admin/subjects/${subjectId}`);
+}
+
 export async function deleteScheduleSlot(subjectId: string, slotId: string) {
   await requireAdmin();
   const supabase = await createClient();

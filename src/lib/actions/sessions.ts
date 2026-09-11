@@ -28,3 +28,32 @@ export async function updateSessionTime(sessionId: string, formData: FormData) {
   revalidatePath(`/admin/sessions/${sessionId}/qr`);
   redirect("/admin");
 }
+
+/**
+ * Deletes today's session outright (cascades any attendance already
+ * recorded for it). Leaves the subject's regular weekly schedule
+ * untouched -- tomorrow's cron run creates a fresh session as usual.
+ */
+export async function cancelSession(sessionId: string) {
+  const profile = await requireAdmin();
+  const supabase = await createClient();
+
+  const { data: session } = await supabase
+    .from("sessions")
+    .select("id, subjects!inner ( admin_id )")
+    .eq("id", sessionId)
+    .single();
+
+  const subject = session
+    ? Array.isArray(session.subjects)
+      ? session.subjects[0]
+      : session.subjects
+    : null;
+  if (!session || !subject || subject.admin_id !== profile.id) {
+    redirect("/admin");
+  }
+
+  await supabase.from("sessions").delete().eq("id", sessionId);
+  revalidatePath("/admin");
+  redirect("/admin");
+}

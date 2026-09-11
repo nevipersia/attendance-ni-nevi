@@ -6,16 +6,20 @@ import {
   updateSubject,
   deleteSubject,
   addScheduleSlot,
+  updateScheduleSlot,
   deleteScheduleSlot,
 } from "@/lib/actions/subjects";
 import { DAY_NAMES } from "@/lib/constants";
 
 export default async function SubjectDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ edit?: string }>;
 }) {
   const { id } = await params;
+  const { edit: editingSlotId } = await searchParams;
   const profile = await getCurrentProfile();
   if (!profile) redirect("/login");
   if (profile.role !== "admin") redirect("/me");
@@ -95,22 +99,91 @@ export default async function SubjectDetailPage({
             {!schedule?.length && (
               <p className="text-sm text-neutral-500">No sessions scheduled yet.</p>
             )}
-            {schedule?.map((slot) => (
-              <div
-                key={slot.id}
-                className="flex items-center justify-between text-sm border border-neutral-100 rounded-md px-3 py-2"
-              >
-                <span>
-                  {DAY_NAMES[slot.day_of_week]} · {slot.start_time.slice(0, 5)}–
-                  {slot.end_time.slice(0, 5)}
-                </span>
-                <form action={deleteScheduleSlot.bind(null, id, slot.id)}>
-                  <button className="text-xs text-red-700 hover:underline">
-                    Remove
+            {schedule?.map((slot) =>
+              slot.id === editingSlotId ? (
+                <form
+                  key={slot.id}
+                  action={updateScheduleSlot.bind(null, id, slot.id)}
+                  className="flex flex-wrap items-end gap-3 border border-emerald-200 bg-emerald-50 rounded-md px-3 py-3"
+                >
+                  <div>
+                    <label className="block text-xs font-medium text-neutral-600 mb-1">
+                      Day
+                    </label>
+                    <select
+                      name="day_of_week"
+                      defaultValue={slot.day_of_week}
+                      className="rounded-md border border-neutral-300 px-2 py-1.5 text-sm bg-white"
+                    >
+                      {DAY_NAMES.map((day, i) => (
+                        <option key={day} value={i}>
+                          {day}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-neutral-600 mb-1">
+                      Start
+                    </label>
+                    <input
+                      name="start_time"
+                      type="time"
+                      required
+                      defaultValue={slot.start_time.slice(0, 5)}
+                      className="rounded-md border border-neutral-300 px-2 py-1.5 text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-neutral-600 mb-1">
+                      End
+                    </label>
+                    <input
+                      name="end_time"
+                      type="time"
+                      required
+                      defaultValue={slot.end_time.slice(0, 5)}
+                      className="rounded-md border border-neutral-300 px-2 py-1.5 text-sm"
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    className="rounded-md bg-emerald-800 text-white text-xs font-medium px-3 py-1.5"
+                  >
+                    Save
                   </button>
+                  <Link
+                    href={`/admin/subjects/${id}`}
+                    className="text-xs text-neutral-500 hover:underline px-1 py-1.5"
+                  >
+                    Cancel
+                  </Link>
                 </form>
-              </div>
-            ))}
+              ) : (
+                <div
+                  key={slot.id}
+                  className="flex items-center justify-between text-sm border border-neutral-100 rounded-md px-3 py-2"
+                >
+                  <span>
+                    {DAY_NAMES[slot.day_of_week]} · {slot.start_time.slice(0, 5)}–
+                    {slot.end_time.slice(0, 5)}
+                  </span>
+                  <div className="flex items-center gap-3">
+                    <Link
+                      href={`/admin/subjects/${id}?edit=${slot.id}`}
+                      className="text-xs text-neutral-500 hover:underline"
+                    >
+                      Edit
+                    </Link>
+                    <form action={deleteScheduleSlot.bind(null, id, slot.id)}>
+                      <button className="text-xs text-red-700 hover:underline">
+                        Remove
+                      </button>
+                    </form>
+                  </div>
+                </div>
+              ),
+            )}
           </div>
 
           <form
