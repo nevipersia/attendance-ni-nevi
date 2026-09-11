@@ -33,11 +33,7 @@ export default async function SessionQrPage({
 
   if (!subject || subject.admin_id !== profile.id) notFound();
 
-  const status = getSessionStatus(
-    session.scheduled_start,
-    session.scheduled_end,
-    subject.grace_minutes,
-  );
+  const status = getSessionStatus(session.scheduled_start, subject.grace_minutes);
 
   const hdrs = await headers();
   const host = hdrs.get("host");

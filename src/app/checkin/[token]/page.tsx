@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { getCurrentProfile } from "@/lib/supabase/profile";
 import { createClient } from "@/lib/supabase/server";
-import { getSessionStatus } from "@/lib/session-status";
+import { getCheckinPhase, CHECKIN_CLOSES_AFTER_MINUTES } from "@/lib/session-status";
 import CheckinSuccess from "./CheckinSuccess";
 
 function formatTime(iso: string) {
@@ -69,24 +69,24 @@ export default async function CheckinPage({
 
   const { data: existing } = await supabase
     .from("attendance")
-    .select("marked_at")
+    .select("marked_at, status")
     .eq("session_id", session.id)
     .eq("student_id", profile.id)
     .maybeSingle();
 
   if (existing) {
     return (
-      <CheckinSuccess subjectName={subject.name} time={formatTime(existing.marked_at)} />
+      <CheckinSuccess
+        subjectName={subject.name}
+        time={formatTime(existing.marked_at)}
+        status={existing.status as "present" | "late"}
+      />
     );
   }
 
-  const status = getSessionStatus(
-    session.scheduled_start,
-    session.scheduled_end,
-    subject.grace_minutes,
-  );
+  const phase = getCheckinPhase(session.scheduled_start, subject.grace_minutes);
 
-  if (status === "upcoming") {
+  if (phase === "upcoming") {
     return (
       <Message
         title="Check-in opens soon"
@@ -95,11 +95,11 @@ export default async function CheckinPage({
     );
   }
 
-  if (status === "closed") {
+  if (phase === "closed") {
     return (
       <Message
         title="Check-in closed"
-        body={`Check-in for ${subject.name} closed at ${formatTime(session.scheduled_end)}. See your teacher to be marked manually.`}
+        body={`Check-in for ${subject.name} closed ${CHECKIN_CLOSES_AFTER_MINUTES} minutes after it started. See your teacher to be marked manually.`}
       />
     );
   }
@@ -108,7 +108,7 @@ export default async function CheckinPage({
   const { error } = await supabase.from("attendance").insert({
     session_id: session.id,
     student_id: profile.id,
-    status: "present",
+    status: phase,
     method: "qr",
   });
 
@@ -121,5 +121,5 @@ export default async function CheckinPage({
     );
   }
 
-  return <CheckinSuccess subjectName={subject.name} time={formatTime(now)} />;
+  return <CheckinSuccess subjectName={subject.name} time={formatTime(now)} status={phase} />;
 }

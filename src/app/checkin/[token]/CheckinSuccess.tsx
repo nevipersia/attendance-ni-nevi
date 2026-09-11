@@ -8,9 +8,11 @@ const REDIRECT_SECONDS = 10;
 export default function CheckinSuccess({
   subjectName,
   time,
+  status,
 }: {
   subjectName: string;
   time: string;
+  status: "present" | "late";
 }) {
   const router = useRouter();
   const [remaining, setRemaining] = useState(REDIRECT_SECONDS);
@@ -34,10 +36,16 @@ export default function CheckinSuccess({
   return (
     <main className="min-h-screen flex items-center justify-center bg-neutral-50 px-4">
       <div className="w-full max-w-sm text-center bg-white border border-neutral-200 rounded-xl p-8">
-        <div className="w-14 h-14 rounded-full bg-emerald-700 text-white flex items-center justify-center text-2xl mx-auto mb-4">
+        <div
+          className={`w-14 h-14 rounded-full text-white flex items-center justify-center text-2xl mx-auto mb-4 ${
+            status === "late" ? "bg-amber-600" : "bg-emerald-700"
+          }`}
+        >
           ✓
         </div>
-        <h1 className="text-lg font-semibold mb-1">Marked present</h1>
+        <h1 className="text-lg font-semibold mb-1">
+          {status === "late" ? "Marked late" : "Marked present"}
+        </h1>
         <p className="text-sm text-neutral-500 font-mono mb-6">
           {subjectName} · {time}
         </p>

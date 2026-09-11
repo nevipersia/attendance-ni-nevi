@@ -55,11 +55,7 @@ export default async function AdminPage() {
     .map((session) => {
       const subject = subjectById.get(session.subject_id);
       if (!subject) return null;
-      const status = getSessionStatus(
-        session.scheduled_start,
-        session.scheduled_end,
-        subject.grace_minutes,
-      );
+      const status = getSessionStatus(session.scheduled_start, subject.grace_minutes);
       const tally = tallyBySession.get(session.id) ?? { present: 0, late: 0, absent: 0 };
       return { session, subject, status, tally };
     })
