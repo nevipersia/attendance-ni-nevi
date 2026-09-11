@@ -1,36 +1,67 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Attendance System
 
-## Getting Started
+A scheduled, self-service attendance system for a small school. Admins
+manage subjects and their weekly schedule; sessions are created
+automatically each day; students check in by scanning a QR code (or get
+marked manually), and reports show flat present/late/absent counts —
+no percentage.
 
-First, run the development server:
+## Stack
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- [Next.js](https://nextjs.org) (App Router, TypeScript, Tailwind)
+- [Supabase](https://supabase.com) (Postgres, Auth, Row Level Security)
+- [Vercel Cron](https://vercel.com/docs/cron-jobs) for daily session generation
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Setup
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. Install dependencies:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+   ```bash
+   npm install
+   ```
 
-## Learn More
+2. Create a Supabase project, then copy `.env.local.example` to
+   `.env.local` and fill in:
 
-To learn more about Next.js, take a look at the following resources:
+   - `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` —
+     Project Settings → API in the Supabase dashboard.
+   - `CRON_SECRET` — any long random string. Vercel automatically sends
+     it as a bearer token to cron routes when set as a project env var.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+3. In the Supabase SQL editor, run the migrations in
+   `supabase/migrations/` **in order** (`0001`, `0002`, `0003`).
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+4. In Supabase → Authentication → Sign In / Providers → Email, turn off
+   **Confirm email** for easier local testing (re-enable for a real
+   deployment if you want email verification).
 
-## Deploy on Vercel
+5. Run the dev server:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+   ```bash
+   npm run dev
+   ```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## How it works
+
+- **Subjects** = classes. Admins create/edit/delete them and set a
+  weekly schedule (day + start/end time) under `/admin/subjects`.
+- **Sessions** are stamped out daily by a Postgres function
+  (`create_todays_sessions`), triggered by `/api/cron/create-sessions`
+  on Vercel's cron schedule (`vercel.json`). A session's status
+  (upcoming/open/closed) is computed from its scheduled time plus the
+  subject's grace period — nothing is manually "started."
+- **Check-in**: the admin's `/admin` "Today" view shows a QR per open
+  session (`/admin/sessions/[id]/qr`). Students scan it with their
+  phone's camera, sign in if needed (bounced back via `returnTo`), and
+  are marked present. Admins can also mark/override any student
+  directly (`/admin/sessions/[id]/mark`).
+- **Reports** (`/admin/reports`) show raw present/late/absent counts
+  per student per subject. Students see only their own counts (`/me`);
+  admins see every student in a subject they own — enforced by
+  Postgres Row Level Security, not app-level checks.
+
+## Deploying
+
+Deploy to Vercel, set the same environment variables there (including
+`CRON_SECRET`), and the cron job in `vercel.json` will start running on
+schedule automatically.
