@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentProfile } from "@/lib/supabase/profile";
 import { signOut } from "@/lib/actions/auth";
@@ -20,8 +21,16 @@ export default async function AdminPage() {
             <button className="text-sm text-neutral-500 hover:text-neutral-800">Sign out</button>
           </form>
         </div>
+        <nav className="flex gap-4 mb-8">
+          <Link
+            href="/admin/subjects"
+            className="text-sm font-medium text-emerald-800 hover:underline"
+          >
+            Subjects
+          </Link>
+        </nav>
         <p className="text-sm text-neutral-500">
-          Subject management, today&rsquo;s sessions, and reports land here next.
+          Today&rsquo;s sessions and reports land here next.
         </p>
       </div>
     </main>
