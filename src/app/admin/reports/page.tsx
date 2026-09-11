@@ -26,18 +26,12 @@ export default async function ReportsPage({
   const { data: summary } = activeSubjectId
     ? await supabase
         .from("attendance_summary")
-        .select("student_id, present_count, late_count, absent_count")
+        .select("student_id, student_name, present_count, late_count, absent_count")
         .eq("subject_id", activeSubjectId)
     : { data: [] };
 
-  const studentIds = summary?.map((s) => s.student_id) ?? [];
-  const { data: students } = studentIds.length
-    ? await supabase.from("profiles").select("id, name").in("id", studentIds)
-    : { data: [] };
-
-  const nameById = new Map(students?.map((s) => [s.id, s.name]));
   const rows = (summary ?? [])
-    .map((s) => ({ ...s, name: nameById.get(s.student_id) ?? "Unknown student" }))
+    .map((s) => ({ ...s, name: s.student_name ?? "Unknown student" }))
     .sort((a, b) => a.name.localeCompare(b.name));
 
   return (

@@ -20,43 +20,30 @@ export default async function AdminPage() {
   const supabase = await createClient();
   const today = todayInSchoolTz();
 
-  const { data: subjects } = await supabase
-    .from("subjects")
-    .select("id, name, grace_minutes")
-    .eq("admin_id", profile.id);
-
-  const subjectIds = subjects?.map((s) => s.id) ?? [];
-
-  const { data: sessions } = subjectIds.length
-    ? await supabase
-        .from("sessions")
-        .select("id, subject_id, session_date, scheduled_start, scheduled_end")
-        .in("subject_id", subjectIds)
-        .eq("session_date", today)
-    : { data: [] };
-
-  const sessionIds = sessions?.map((s) => s.id) ?? [];
-  const { data: attendanceRows } = sessionIds.length
-    ? await supabase
-        .from("attendance")
-        .select("session_id, status")
-        .in("session_id", sessionIds)
-    : { data: [] };
-
-  const subjectById = new Map(subjects?.map((s) => [s.id, s]));
-  const tallyBySession = new Map<string, { present: number; late: number; absent: number }>();
-  for (const row of attendanceRows ?? []) {
-    const t = tallyBySession.get(row.session_id) ?? { present: 0, late: 0, absent: 0 };
-    t[row.status as "present" | "late" | "absent"]++;
-    tallyBySession.set(row.session_id, t);
-  }
+  // One round trip instead of three: embed the owning subject (inner
+  // join, so it also filters to sessions this admin owns) and every
+  // attendance row for that session, via their foreign keys.
+  const { data: sessions } = await supabase
+    .from("sessions")
+    .select(
+      `id, subject_id, session_date, scheduled_start, scheduled_end,
+       subjects!inner ( id, name, grace_minutes, admin_id ),
+       attendance ( status )`,
+    )
+    .eq("subjects.admin_id", profile.id)
+    .eq("session_date", today);
 
   const rows = (sessions ?? [])
     .map((session) => {
-      const subject = subjectById.get(session.subject_id);
+      const subject = Array.isArray(session.subjects)
+        ? session.subjects[0]
+        : session.subjects;
       if (!subject) return null;
       const status = getSessionStatus(session.scheduled_start, subject.grace_minutes);
-      const tally = tallyBySession.get(session.id) ?? { present: 0, late: 0, absent: 0 };
+      const tally = { present: 0, late: 0, absent: 0 };
+      for (const row of session.attendance) {
+        tally[row.status as "present" | "late" | "absent"]++;
+      }
       return { session, subject, status, tally };
     })
     .filter((r): r is NonNullable<typeof r> => r !== null)

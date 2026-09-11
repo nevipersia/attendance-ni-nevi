@@ -14,17 +14,11 @@ export default async function StudentPage() {
 
   const { data: summary } = await supabase
     .from("attendance_summary")
-    .select("subject_id, present_count, late_count, absent_count")
+    .select("subject_id, subject_name, present_count, late_count, absent_count")
     .eq("student_id", profile.id);
 
-  const subjectIds = summary?.map((s) => s.subject_id) ?? [];
-  const { data: subjects } = subjectIds.length
-    ? await supabase.from("subjects").select("id, name").in("id", subjectIds)
-    : { data: [] };
-
-  const nameById = new Map(subjects?.map((s) => [s.id, s.name]));
   const rows = (summary ?? [])
-    .map((s) => ({ ...s, name: nameById.get(s.subject_id) ?? "Unknown subject" }))
+    .map((s) => ({ ...s, name: s.subject_name ?? "Unknown subject" }))
     .sort((a, b) => a.name.localeCompare(b.name));
 
   return (
