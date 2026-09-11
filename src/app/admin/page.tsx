@@ -39,7 +39,11 @@ export default async function AdminPage() {
         ? session.subjects[0]
         : session.subjects;
       if (!subject) return null;
-      const status = getSessionStatus(session.scheduled_start, subject.grace_minutes);
+      const status = getSessionStatus(
+        session.scheduled_start,
+        session.scheduled_end,
+        subject.grace_minutes,
+      );
       const tally = { present: 0, late: 0, absent: 0 };
       for (const row of session.attendance) {
         tally[row.status as "present" | "late" | "absent"]++;

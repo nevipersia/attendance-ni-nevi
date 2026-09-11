@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { getCurrentProfile } from "@/lib/supabase/profile";
 import { createClient } from "@/lib/supabase/server";
-import { getCheckinPhase, CHECKIN_CLOSES_AFTER_MINUTES } from "@/lib/session-status";
+import { getCheckinPhase } from "@/lib/session-status";
 import CheckinSuccess from "./CheckinSuccess";
 
 function formatTime(iso: string) {
@@ -79,12 +79,16 @@ export default async function CheckinPage({
       <CheckinSuccess
         subjectName={subject.name}
         time={formatTime(existing.marked_at)}
-        status={existing.status as "present" | "late"}
+        status={existing.status as "present" | "late" | "absent"}
       />
     );
   }
 
-  const phase = getCheckinPhase(session.scheduled_start, subject.grace_minutes);
+  const phase = getCheckinPhase(
+    session.scheduled_start,
+    session.scheduled_end,
+    subject.grace_minutes,
+  );
 
   if (phase === "upcoming") {
     return (
@@ -99,7 +103,7 @@ export default async function CheckinPage({
     return (
       <Message
         title="Check-in closed"
-        body={`Check-in for ${subject.name} closed ${CHECKIN_CLOSES_AFTER_MINUTES} minutes after it started. See your teacher to be marked manually.`}
+        body={`${subject.name} ended at ${formatTime(session.scheduled_end)}. See your teacher to be marked manually.`}
       />
     );
   }

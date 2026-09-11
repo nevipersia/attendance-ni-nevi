@@ -33,7 +33,11 @@ export default async function SessionQrPage({
 
   if (!subject || subject.admin_id !== profile.id) notFound();
 
-  const status = getSessionStatus(session.scheduled_start, subject.grace_minutes);
+  const status = getSessionStatus(
+    session.scheduled_start,
+    session.scheduled_end,
+    subject.grace_minutes,
+  );
 
   const hdrs = await headers();
   const host = hdrs.get("host");
@@ -60,8 +64,9 @@ export default async function SessionQrPage({
         </div>
 
         <p className="text-xs text-neutral-400 mt-5">
-          Students scan this with their phone camera. It only works while the
-          session is open.
+          Students scan this with their phone camera. Valid for the whole
+          session — present before class starts, late after 10 minutes,
+          auto-marked absent after 30.
         </p>
       </div>
     </main>

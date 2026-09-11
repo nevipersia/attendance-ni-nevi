@@ -12,7 +12,7 @@ export default function CheckinSuccess({
 }: {
   subjectName: string;
   time: string;
-  status: "present" | "late";
+  status: "present" | "late" | "absent";
 }) {
   const router = useRouter();
   const [remaining, setRemaining] = useState(REDIRECT_SECONDS);
@@ -38,14 +38,28 @@ export default function CheckinSuccess({
       <div className="w-full max-w-sm text-center bg-white border border-neutral-200 rounded-xl p-8">
         <div
           className={`w-14 h-14 rounded-full text-white flex items-center justify-center text-2xl mx-auto mb-4 ${
-            status === "late" ? "bg-amber-600" : "bg-emerald-700"
+            status === "late"
+              ? "bg-amber-600"
+              : status === "absent"
+                ? "bg-red-700"
+                : "bg-emerald-700"
           }`}
         >
-          ✓
+          {status === "absent" ? "!" : "✓"}
         </div>
         <h1 className="text-lg font-semibold mb-1">
-          {status === "late" ? "Marked late" : "Marked present"}
+          {status === "late"
+            ? "Marked late"
+            : status === "absent"
+              ? "Marked absent"
+              : "Marked present"}
         </h1>
+        {status === "absent" && (
+          <p className="text-xs text-red-700 bg-red-50 border border-red-200 rounded-md px-3 py-2 mb-3">
+            You scanned more than 30 minutes after class started, so this is
+            recorded as absent.
+          </p>
+        )}
         <p className="text-sm text-neutral-500 font-mono mb-6">
           {subjectName} · {time}
         </p>
