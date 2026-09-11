@@ -21,10 +21,21 @@ export async function signIn(
   const returnTo = safeReturnTo(formData.get("returnTo"));
 
   const supabase = await createClient();
-  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
   if (error) {
     return { error: error.message };
+  }
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("active")
+    .eq("id", data.user.id)
+    .single();
+
+  if (profile && profile.active === false) {
+    await supabase.auth.signOut();
+    return { error: "This account has been deactivated." };
   }
 
   redirect(returnTo);

@@ -11,11 +11,18 @@ function LoginForm() {
   const [state, formAction, pending] = useActionState(signIn, initialState);
   const searchParams = useSearchParams();
   const returnTo = searchParams.get("returnTo") ?? "/";
+  const deactivated = searchParams.get("deactivated") === "1";
 
   return (
     <div className="w-full max-w-sm bg-white border border-neutral-200 rounded-xl p-8">
       <h1 className="text-xl font-semibold mb-1">Sign in</h1>
       <p className="text-sm text-neutral-500 mb-6">BSIT 2-2 Attendance</p>
+
+      {deactivated && (
+        <p className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-md px-3 py-2 mb-4">
+          This account has been deactivated.
+        </p>
+      )}
 
       <form action={formAction} className="flex flex-col gap-4">
         <input type="hidden" name="returnTo" value={returnTo} />

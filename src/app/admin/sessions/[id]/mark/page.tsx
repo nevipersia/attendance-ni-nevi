@@ -39,6 +39,7 @@ export default async function MarkAttendancePage({
     .from("profiles")
     .select("id, name")
     .eq("role", "student")
+    .eq("active", true)
     .order("name");
 
   const { data: attendance } = await supabase
