@@ -47,18 +47,6 @@ function SignupForm() {
             className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-emerald-700"
           />
         </div>
-        <div>
-          <label className="block text-xs font-medium text-neutral-600 mb-1">I am a…</label>
-          <select
-            name="role"
-            defaultValue="student"
-            className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-emerald-700 bg-white"
-          >
-            <option value="student">Student</option>
-            <option value="admin">Admin</option>
-          </select>
-        </div>
-
         {state.error && (
           <p className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-md px-3 py-2">
             {state.error}

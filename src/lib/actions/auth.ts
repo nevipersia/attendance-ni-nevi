@@ -37,18 +37,15 @@ export async function signUp(
   const name = String(formData.get("name") ?? "");
   const email = String(formData.get("email") ?? "");
   const password = String(formData.get("password") ?? "");
-  const role = String(formData.get("role") ?? "student");
   const returnTo = safeReturnTo(formData.get("returnTo"));
 
-  if (role !== "admin" && role !== "student") {
-    return { error: "Invalid role." };
-  }
-
+  // New accounts are always students. Admin is assigned directly in
+  // Supabase (Table editor: profiles.role), never chosen by the user.
   const supabase = await createClient();
   const { error } = await supabase.auth.signUp({
     email,
     password,
-    options: { data: { name, role } },
+    options: { data: { name, role: "student" } },
   });
 
   if (error) {
