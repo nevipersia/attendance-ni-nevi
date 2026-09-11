@@ -16,7 +16,7 @@ export default function LoginPage() {
     <main className="min-h-screen flex items-center justify-center bg-neutral-50 px-4">
       <div className="w-full max-w-sm bg-white border border-neutral-200 rounded-xl p-8">
         <h1 className="text-xl font-semibold mb-1">Sign in</h1>
-        <p className="text-sm text-neutral-500 mb-6">Attendance system</p>
+        <p className="text-sm text-neutral-500 mb-6">BSIT 2-2 Attendance</p>
 
         <form action={formAction} className="flex flex-col gap-4">
           <input type="hidden" name="returnTo" value={returnTo} />
