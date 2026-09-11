@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { signUp, type ActionState } from "@/lib/actions/auth";
 
@@ -8,6 +9,8 @@ const initialState: ActionState = { error: null };
 
 export default function SignupPage() {
   const [state, formAction, pending] = useActionState(signUp, initialState);
+  const searchParams = useSearchParams();
+  const returnTo = searchParams.get("returnTo") ?? "/";
 
   return (
     <main className="min-h-screen flex items-center justify-center bg-neutral-50 px-4">
@@ -16,6 +19,7 @@ export default function SignupPage() {
         <p className="text-sm text-neutral-500 mb-6">Attendance system</p>
 
         <form action={formAction} className="flex flex-col gap-4">
+          <input type="hidden" name="returnTo" value={returnTo} />
           <div>
             <label className="block text-xs font-medium text-neutral-600 mb-1">Name</label>
             <input
@@ -73,7 +77,10 @@ export default function SignupPage() {
 
         <p className="text-sm text-neutral-500 mt-5">
           Already have an account?{" "}
-          <Link href="/login" className="text-emerald-800 font-medium">
+          <Link
+            href={`/login?returnTo=${encodeURIComponent(returnTo)}`}
+            className="text-emerald-800 font-medium"
+          >
             Sign in
           </Link>
         </p>
