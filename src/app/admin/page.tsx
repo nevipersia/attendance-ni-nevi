@@ -137,6 +137,12 @@ export default async function AdminPage() {
                 >
                   Mark manually
                 </Link>
+                <Link
+                  href={`/admin/sessions/${session.id}/edit`}
+                  className="text-xs font-medium border border-neutral-300 rounded-md px-3 py-1.5"
+                >
+                  Edit time
+                </Link>
               </div>
             </div>
           ))}
